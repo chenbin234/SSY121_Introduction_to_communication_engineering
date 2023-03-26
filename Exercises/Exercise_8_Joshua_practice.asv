@@ -1,0 +1,31 @@
+close all;
+clc;
+clear all;
+
+SNR = 100;
+
+preamble = [1 1 1 -1 -1 1 -1]; % 7 bits
+sum(abs(preamble).^2);
+% plot(xcorr(preamble))
+
+Tp = length(preamble);
+delay = randi([1,20],1);
+
+zeros(1,delay);
+%rx = awgn([zeros(1,delay) preamble 1 1 1 1 1 1 1 1 1 0 0 0 0 0],SNR,'measured'); % received signal
+rx = awgn([zeros(1,delay) 1 1 1 1 1 1 1 1 1 0 0 0 0 0 1 1 1 1 1],SNR,'measured'); % received signal
+
+% prbdet = comm.PreambleDetector(preamble','Input','Bit');
+% pkt = [preamble'; randi([0 1],10,1); preamble'; randi([0 1],10,1)];
+% idx = prbdet(pkt);
+
+rx = rx./max(abs(rx));
+%corr = conv(rx,fliplr(conj(preamble)));
+corr = conv(rx,fliplr(preamble));
+%corr = corr./max(abs(corr));
+figure;
+plot(corr,'.-r')
+
+[tmp,Tmax] = max(corr); %tmp is the maximum value, and Tmax is the index of tmp
+Tx_hat = Tmax - length(preamble);
+fprintf('delay = %d, estimation = %d\n',delay,Tx_hat)
